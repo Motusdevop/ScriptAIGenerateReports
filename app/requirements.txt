@@ -1,0 +1,16 @@
+fastapi[standard]
+
+pydantic
+pydantic-settings
+
+loguru
+
+pycurl
+beautifulsoup4
+lxml
+
+google-generativeai
+
+python-dotenv
+uvicorn
+

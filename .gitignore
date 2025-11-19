@@ -1,0 +1,58 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pkl
+*.pdb
+*.so
+
+# virtual env
+.venv/
+venv/
+env/
+
+# IDE / Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs & dumps
+*.log
+logs/
+*.out
+*.err
+*.dump
+
+# Byte-compiled
+*.egg
+*.egg-info/
+dist/
+build/
+
+# PyInstaller
+*.spec
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environment variables
+.env
+.env.*
+*.secret
+*.key
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Coverage / testing
+.coverage
+htmlcov/
+.cache/
+pytest_cache/
+
+# Local data
+data/
+tmp/

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Softium Parser</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Script Report Generation</h1>
+
+    <label for="username">Логин</label>
+    <input type="text" id="username">
+
+    <label for="password">Пароль</label>
+    <input type="password" id="password">
+
+    <button id="saveBtn">Сохранить</button>
+    <button id="editBtn" style="display: none;">Редактировать</button>
+
+    <label for="lessonId">ID урока</label>
+    <input type="number" id="lessonId">
+
+
+    <button id="fetchBtn">Получить данные из урока</button>
+    <button id="generateBtn">Сгенерировать отчёт</button>
+
+    <div class="message" id="message"></div>
+    <div class="loader" id="loader" style="display:none;"></div>
+    <div class="report" id="report"></div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

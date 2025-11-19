@@ -1,0 +1,114 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f6f8;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  height: 100vh;
+  margin: 0;
+  padding-top: 20px;
+}
+
+.container {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 600px;
+}
+
+h1 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin-top: 15px;
+  font-weight: bold;
+  color: #555;
+}
+
+input[type="text"], input[type="password"], input[type="number"] {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+input:disabled {
+  background-color: #e9ecef;
+}
+
+button {
+  margin-top: 15px;
+  width: 100%;
+  padding: 12px;
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+#editBtn {
+  background-color: #28a745;
+}
+#editBtn:hover {
+  background-color: #1e7e34;
+}
+
+#generateBtn {
+  background-color: #ffc107;
+  color: black;
+}
+#generateBtn:hover {
+  background-color: #e0a800;
+}
+
+#fetchBtn {
+  background-color: #17a2b8;
+}
+#fetchBtn:hover {
+  background-color: #117a8b;
+}
+
+.message {
+  margin-top: 10px;
+  text-align: center;
+  color: green;
+}
+
+.loader {
+  border: 6px solid #f3f3f3;
+  border-top: 6px solid #007BFF;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  margin: 10px auto;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg);}
+  100% { transform: rotate(360deg);}
+}
+
+.report {
+  margin-top: 20px;
+  background: #f1f3f5;
+  padding: 15px;
+  border-radius: 5px;
+  max-height: 400px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+}

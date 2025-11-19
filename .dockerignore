@@ -1,0 +1,30 @@
+# Git
+.git/
+.gitignore
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Local env files (не попадут в образ)
+.env
+.env.*
+*.secret
+*.key
+
+# Build artifacts
+dist/
+build/
+
+# Logs
+*.log
+logs/
+
+# Development only
+.vscode/
+.idea/
