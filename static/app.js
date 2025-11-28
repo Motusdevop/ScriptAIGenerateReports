@@ -9,9 +9,48 @@ const message = document.getElementById('message');
 const loader = document.getElementById('loader');
 const report = document.getElementById('report');
 
+const textEncoder = new TextEncoder();
+
 let lessonData = null;
 
 generateBtn.disabled = true;
+
+// =========================
+// УТИЛИТЫ ДЛЯ ШИФРОВАНИЯ ПАРОЛЯ
+// =========================
+function bufferToBase64(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i += 1) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+async function deriveAesKey(username, lessonId) {
+  const material = textEncoder.encode(`${username}:${lessonId}`);
+  const digest = await crypto.subtle.digest('SHA-256', material);
+  return crypto.subtle.importKey('raw', digest, { name: 'AES-GCM' }, false, ['encrypt']);
+}
+
+async function encryptPassword(password, username, lessonId) {
+  const key = await deriveAesKey(username, lessonId);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const encodedPassword = textEncoder.encode(password);
+  const cipherBuffer = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encodedPassword);
+
+  return {
+    cipher: bufferToBase64(cipherBuffer),
+    iv: bufferToBase64(iv),
+  };
+}
+
+async function protectPassword(password, username, lessonId) {
+  if (!password) {
+    throw new Error('Пароль отсутствует');
+  }
+  return encryptPassword(password, username, lessonId);
+}
 
 // =========================
 // ЗАГРУЗКА СОХРАНЁННЫХ КРЕДОВ
@@ -79,7 +118,15 @@ fetchBtn.addEventListener('click', async () => {
   generateBtn.disabled = true;
 
   try {
-    const response = await fetch(`/scraper/get_lesson_data?username=${encodeURIComponent(savedCreds.username)}&password=${encodeURIComponent(savedCreds.password)}&lesson_id=${lessonId}`);
+    const protectedPassword = await protectPassword(savedCreds.password, savedCreds.username, lessonId);
+    const params = new URLSearchParams({
+      username: savedCreds.username,
+      lesson_id: lessonId,
+      password: protectedPassword.cipher,
+      password_iv: protectedPassword.iv,
+    });
+
+    const response = await fetch(`/scraper/get_lesson_data?${params.toString()}`);
     if (!response.ok) throw new Error(response.statusText);
 
     lessonData = await response.json();

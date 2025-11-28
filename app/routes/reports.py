@@ -1,18 +1,14 @@
 from fastapi import APIRouter, HTTPException
-from app.schemas import LessonReportRequest
 
-from app.services.reports import (
-    configure_gemini,
-    send_to_gemini,
-    make_prompt_for_children,
-)
+from app.schemas import LessonReportRequest
+from app.services.reports import configure_gemini, collect_reports
 from app.config import settings
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
 
 @router.post("/generate")
-def generate_report(payload: LessonReportRequest):
+async def generate_report(payload: LessonReportRequest):
     """
     Генерирует отчет на основе переданных данных урока.
     """
@@ -22,8 +18,6 @@ def generate_report(payload: LessonReportRequest):
     configure_gemini(api_key=settings.GEMINI_API_KEY)
 
     children = [child.model_dump() for child in payload.children]
+    report = await collect_reports(children)
 
-    prompt = make_prompt_for_children(children)
-    response = send_to_gemini(prompt)
-
-    return {"status": "success", "report": response}
+    return {"status": "success", "report": report}
