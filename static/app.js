@@ -9,71 +9,9 @@ const message = document.getElementById('message');
 const loader = document.getElementById('loader');
 const report = document.getElementById('report');
 
-const textEncoder = new TextEncoder();
-
 let lessonData = null;
 
 generateBtn.disabled = true;
-
-// =========================
-// УТИЛИТЫ
-// =========================
-
-// base64 из ArrayBuffer
-function bufferToBase64(buffer) {
-  const bytes = new Uint8Array(buffer);
-  let binary = '';
-  for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
-  return btoa(binary);
-}
-
-// base64 из Uint8Array
-function bytesToBase64(bytes) {
-  let binary = '';
-  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-  return btoa(binary);
-}
-
-// SHA-256 через crypto-js (работает везде)
-function sha256ToBytes(str) {
-  const hashHex = CryptoJS.SHA256(str).toString(); // hex строка
-  return new Uint8Array(hashHex.match(/.{2}/g).map(b => parseInt(b, 16)));
-}
-
-// Генерация AES ключа
-async function deriveAesKey(username, lessonId) {
-  const materialBytes = sha256ToBytes(`${username}:${lessonId}`);
-
-  return crypto.subtle.importKey(
-    "raw",
-    materialBytes,
-    { name: "AES-GCM" },
-    false,
-    ["encrypt"]
-  );
-}
-
-async function encryptPassword(password, username, lessonId) {
-  const key = await deriveAesKey(username, lessonId);
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const encodedPassword = textEncoder.encode(password);
-
-  const cipherBuffer = await crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv },
-    key,
-    encodedPassword
-  );
-
-  return {
-    cipher: bufferToBase64(cipherBuffer),
-    iv: bytesToBase64(iv),
-  };
-}
-
-async function protectPassword(password, username, lessonId) {
-  if (!password) throw new Error('Пароль отсутствует');
-  return encryptPassword(password, username, lessonId);
-}
 
 // =========================
 // ЗАГРУЗКА СОХРАНЁННЫХ ДАННЫХ
@@ -115,7 +53,7 @@ saveBtn.addEventListener('click', () => {
 });
 
 // =========================
-// РЕДАКТИРОВАНИЕ
+// РЕДАКТИРОВАНИЕ КРЕДОВ
 // =========================
 editBtn.addEventListener('click', () => {
   usernameInput.disabled = false;
@@ -126,7 +64,7 @@ editBtn.addEventListener('click', () => {
 });
 
 // =========================
-// ЗАГРУЗКА УРОКА
+// ЗАГРУЗКА ДАННЫХ УРОКА
 // =========================
 fetchBtn.addEventListener('click', async () => {
   const savedCreds = JSON.parse(localStorage.getItem('softiumCreds') || '{}');
@@ -138,24 +76,17 @@ fetchBtn.addEventListener('click', async () => {
     return;
   }
 
-  message.innerText = 'Загрузка данных...';
   message.style.color = 'black';
+  message.innerText = 'Загрузка данных...';
   loader.style.display = 'block';
   report.innerHTML = '';
   generateBtn.disabled = true;
 
   try {
-    const protectedPassword = await protectPassword(
-      savedCreds.password,
-      savedCreds.username,
-      lessonId
-    );
-
     const params = new URLSearchParams({
       username: savedCreds.username,
-      lesson_id: lessonId,
-      password: protectedPassword.cipher,
-      password_iv: protectedPassword.iv,
+      password: savedCreds.password,  // ТЕПЕРЬ ОТПРАВЛЯЕМ КАК ЕСТЬ
+      lesson_id: lessonId
     });
 
     const response = await fetch(`/scraper/get_lesson_data?${params.toString()}`);
@@ -175,10 +106,10 @@ fetchBtn.addEventListener('click', async () => {
     message.style.color = 'green';
     message.innerText = 'Данные успешно получены!';
     generateBtn.disabled = false;
+
   } catch (err) {
     message.style.color = 'red';
     message.innerText = `Ошибка: ${err.message}`;
-    generateBtn.disabled = true;
   } finally {
     loader.style.display = 'none';
   }
@@ -197,14 +128,13 @@ generateBtn.addEventListener('click', async () => {
   try {
     const response = await fetch('/reports/generate', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(lessonData),
     });
 
     if (!response.ok) throw new Error(response.statusText);
 
     const result = await response.json();
-
     renderGeneratedReport(result);
 
     message.style.color = 'green';
@@ -246,7 +176,7 @@ function renderGeneratedReport(result) {
 }
 
 // =========================
-// КРАСИВЫЙ ВЫВОД ДАННЫХ УРОКА
+// ОТОБРАЖЕНИЕ ДАННЫХ УРОКА
 // =========================
 function displayLessonData(data) {
   const html = data.children.map(child => {
