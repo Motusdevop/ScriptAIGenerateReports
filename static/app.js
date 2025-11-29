@@ -16,44 +16,67 @@ let lessonData = null;
 generateBtn.disabled = true;
 
 // =========================
-// УТИЛИТЫ ДЛЯ ШИФРОВАНИЯ ПАРОЛЯ
+// УТИЛИТЫ
 // =========================
+
+// base64 из ArrayBuffer
 function bufferToBase64(buffer) {
   const bytes = new Uint8Array(buffer);
   let binary = '';
-  for (let i = 0; i < bytes.byteLength; i += 1) {
-    binary += String.fromCharCode(bytes[i]);
-  }
+  for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
   return btoa(binary);
 }
 
+// base64 из Uint8Array
+function bytesToBase64(bytes) {
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary);
+}
+
+// SHA-256 через crypto-js (работает везде)
+function sha256ToBytes(str) {
+  const hashHex = CryptoJS.SHA256(str).toString(); // hex строка
+  return new Uint8Array(hashHex.match(/.{2}/g).map(b => parseInt(b, 16)));
+}
+
+// Генерация AES ключа
 async function deriveAesKey(username, lessonId) {
-  const material = textEncoder.encode(`${username}:${lessonId}`);
-  const digest = await crypto.subtle.digest('SHA-256', material);
-  return crypto.subtle.importKey('raw', digest, { name: 'AES-GCM' }, false, ['encrypt']);
+  const materialBytes = sha256ToBytes(`${username}:${lessonId}`);
+
+  return crypto.subtle.importKey(
+    "raw",
+    materialBytes,
+    { name: "AES-GCM" },
+    false,
+    ["encrypt"]
+  );
 }
 
 async function encryptPassword(password, username, lessonId) {
   const key = await deriveAesKey(username, lessonId);
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const encodedPassword = textEncoder.encode(password);
-  const cipherBuffer = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encodedPassword);
+
+  const cipherBuffer = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv },
+    key,
+    encodedPassword
+  );
 
   return {
     cipher: bufferToBase64(cipherBuffer),
-    iv: bufferToBase64(iv),
+    iv: bytesToBase64(iv),
   };
 }
 
 async function protectPassword(password, username, lessonId) {
-  if (!password) {
-    throw new Error('Пароль отсутствует');
-  }
+  if (!password) throw new Error('Пароль отсутствует');
   return encryptPassword(password, username, lessonId);
 }
 
 // =========================
-// ЗАГРУЗКА СОХРАНЁННЫХ КРЕДОВ
+// ЗАГРУЗКА СОХРАНЁННЫХ ДАННЫХ
 // =========================
 window.onload = () => {
   const savedCreds = localStorage.getItem('softiumCreds');
@@ -74,22 +97,25 @@ window.onload = () => {
 saveBtn.addEventListener('click', () => {
   const username = usernameInput.value.trim();
   const password = passwordInput.value.trim();
+
   if (!username || !password) {
     message.style.color = 'red';
     message.innerText = 'Введите логин и пароль!';
     return;
   }
+
   localStorage.setItem('softiumCreds', JSON.stringify({ username, password }));
   usernameInput.disabled = true;
   passwordInput.disabled = true;
   saveBtn.style.display = 'none';
   editBtn.style.display = 'block';
+
   message.style.color = 'green';
   message.innerText = 'Креды сохранены!';
 });
 
 // =========================
-// РЕДАКТИРОВАНИЕ КРЕДОВ
+// РЕДАКТИРОВАНИЕ
 // =========================
 editBtn.addEventListener('click', () => {
   usernameInput.disabled = false;
@@ -100,25 +126,31 @@ editBtn.addEventListener('click', () => {
 });
 
 // =========================
-// ПОЛУЧЕНИЕ ДАННЫХ УРОКА
+// ЗАГРУЗКА УРОКА
 // =========================
 fetchBtn.addEventListener('click', async () => {
   const savedCreds = JSON.parse(localStorage.getItem('softiumCreds') || '{}');
   const lessonId = lessonIdInput.value.trim();
+
   if (!savedCreds.username || !savedCreds.password || !lessonId) {
     message.style.color = 'red';
     message.innerText = 'Заполните креды и ID урока!';
     return;
   }
 
-  message.style.color = 'black';
   message.innerText = 'Загрузка данных...';
+  message.style.color = 'black';
   loader.style.display = 'block';
   report.innerHTML = '';
   generateBtn.disabled = true;
 
   try {
-    const protectedPassword = await protectPassword(savedCreds.password, savedCreds.username, lessonId);
+    const protectedPassword = await protectPassword(
+      savedCreds.password,
+      savedCreds.username,
+      lessonId
+    );
+
     const params = new URLSearchParams({
       username: savedCreds.username,
       lesson_id: lessonId,
@@ -134,7 +166,6 @@ fetchBtn.addEventListener('click', async () => {
     if (!lessonData.children || lessonData.children.length === 0) {
       message.style.color = 'red';
       message.innerText = 'Не удалось получить данные об уроке.';
-      report.innerHTML = '';
       lessonData = null;
       return;
     }
@@ -159,7 +190,6 @@ fetchBtn.addEventListener('click', async () => {
 generateBtn.addEventListener('click', async () => {
   if (!lessonData) return;
 
-  message.style.color = 'black';
   message.innerText = 'Генерация отчёта...';
   loader.style.display = 'block';
   report.innerHTML = '';
@@ -181,14 +211,14 @@ generateBtn.addEventListener('click', async () => {
     message.innerText = 'Отчёт успешно сгенерирован!';
   } catch (err) {
     message.style.color = 'red';
-    message.innerText = `Ошибка при генерации: ${err.message}`;
+    message.innerText = `Ошибка: ${err.message}`;
   } finally {
     loader.style.display = 'none';
   }
 });
 
 // =========================
-// КРАСИВЫЙ ВЫВОД СГЕНЕРИРОВАННОГО ОТЧЁТА
+// ОТОБРАЖЕНИЕ ОТЧЁТА
 // =========================
 function renderGeneratedReport(result) {
   if (result.status !== "success") {
@@ -216,7 +246,7 @@ function renderGeneratedReport(result) {
 }
 
 // =========================
-// КРАСИВОЕ ОТОБРАЖЕНИЕ ДАННЫХ УРОКА
+// КРАСИВЫЙ ВЫВОД ДАННЫХ УРОКА
 // =========================
 function displayLessonData(data) {
   const html = data.children.map(child => {
