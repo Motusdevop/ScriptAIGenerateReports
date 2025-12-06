@@ -3,32 +3,53 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Softium Parser</title>
+  <title>Отчёты Скрипт</title>
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
   <div class="container">
-    <h1>Script Report Generation</h1>
+    <header class="app-header">
+      <h1>Отчёты Скрипт 📑</h1>
+    </header>
 
-    <label for="username">Логин</label>
-    <input type="text" id="username">
+    <section class="credentials-section">
+      <div class="form-group">
+        <label for="username">Логин</label>
+        <input type="text" id="username">
+      </div>
+      <div class="form-group">
+        <label for="password">Пароль</label>
+        <input type="password" id="password">
+      </div>
+      <div class="button-group">
+        <button id="saveBtn">Сохранить</button>
+        <button id="editBtn" style="display: none;">Редактировать</button>
+      </div>
+    </section>
 
-    <label for="password">Пароль</label>
-    <input type="password" id="password">
-
-    <button id="saveBtn">Сохранить</button>
-    <button id="editBtn" style="display: none;">Редактировать</button>
-
-    <label for="lessonId">ID урока</label>
-    <input type="number" id="lessonId">
-
-
-    <button id="fetchBtn">Получить данные из урока</button>
-    <button id="generateBtn">Сгенерировать отчёт</button>
+    <section class="lesson-section">
+      <div class="form-group">
+        <label for="lessonId">ID урока</label>
+        <input type="number" id="lessonId">
+      </div>
+      <div class="button-group">
+        <button id="fetchBtn">Получить данные из урока</button>
+        <button id="generateBtn">Сгенерировать отчёт</button>
+      </div>
+    </section>
 
     <div class="message" id="message"></div>
     <div class="loader" id="loader" style="display:none;"></div>
-    <div class="report" id="report"></div>
+
+    <div id="lessonPreview" class="lesson-preview-section" style="display: none;">
+      <h2 class="section-title">Данные урока</h2>
+      <div class="lesson-preview-content" id="lessonPreviewContent"></div>
+    </div>
+
+    <div id="reportsSection" class="reports-section" style="display: none;">
+      <h2 class="section-title">Сгенерированные отчеты</h2>
+      <div class="reports-content" id="report"></div>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.js"></script>

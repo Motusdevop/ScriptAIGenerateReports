@@ -8,6 +8,9 @@ const generateBtn = document.getElementById('generateBtn');
 const message = document.getElementById('message');
 const loader = document.getElementById('loader');
 const report = document.getElementById('report');
+const lessonPreviewSection = document.getElementById('lessonPreview');
+const lessonPreviewContent = document.getElementById('lessonPreviewContent');
+const reportsSection = document.getElementById('reportsSection');
 
 let lessonData = null;
 
@@ -79,6 +82,9 @@ fetchBtn.addEventListener('click', async () => {
   message.style.color = 'black';
   message.innerText = 'Загрузка данных...';
   loader.style.display = 'block';
+  lessonPreviewContent.innerHTML = '';
+  lessonPreviewSection.style.display = 'none';
+  reportsSection.style.display = 'none';
   report.innerHTML = '';
   generateBtn.disabled = true;
 
@@ -102,6 +108,7 @@ fetchBtn.addEventListener('click', async () => {
     }
 
     displayLessonData(lessonData);
+    lessonPreviewSection.style.display = 'block';
 
     message.style.color = 'green';
     message.innerText = 'Данные успешно получены!';
@@ -119,33 +126,56 @@ fetchBtn.addEventListener('click', async () => {
 // ГЕНЕРАЦИЯ ОТЧЁТА
 // =========================
 generateBtn.addEventListener('click', async () => {
-  if (!lessonData) return;
+  if (!lessonData || !lessonData.children?.length) return;
 
-  message.innerText = 'Генерация отчёта...';
+  message.style.color = 'black';
+  message.innerText = 'Генерация отчётов...';
   loader.style.display = 'block';
   report.innerHTML = '';
+  reportsSection.style.display = 'block';
+  generateBtn.disabled = true;
 
-  try {
-    const response = await fetch('/reports/generate', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(lessonData),
-    });
+  for (let i = 0; i < lessonData.children.length; i++) {
+    const child = lessonData.children[i];
 
-    if (!response.ok) throw new Error(response.statusText);
+    // Плейсхолдер сразу в DOM
+    const blockId = `report-${child.child_id}`;
+    report.insertAdjacentHTML(
+  'beforeend',
+  `<div id="${blockId}" class="report-item">
+    <div class="report-name">${child.name}</div>
+    <div class="report-loading">Генерация...</div>
+  </div>`
+);
 
-    const result = await response.json();
-    renderGeneratedReport(result);
 
-    message.style.color = 'green';
-    message.innerText = 'Отчёт успешно сгенерирован!';
-  } catch (err) {
-    message.style.color = 'red';
-    message.innerText = `Ошибка: ${err.message}`;
-  } finally {
-    loader.style.display = 'none';
+    try {
+      const response = await fetch('/reports/generate', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ child }), // ✅ ТЕПЕРЬ ПО ОДНОМУ
+      });
+
+      if (!response.ok) throw new Error(response.statusText);
+
+      const result = await response.json();
+
+      renderSingleGeneratedReport(blockId, result);
+
+    } catch (err) {
+      document.getElementById(blockId).innerHTML = `
+        <div class="report-name">${child.name}</div>
+        <div class="report-error">Ошибка генерации: ${err.message}</div>
+      `;
+    }
   }
+
+  loader.style.display = 'none';
+  generateBtn.disabled = false;
+  message.style.color = 'green';
+  message.innerText = 'Все отчёты сгенерированы!';
 });
+
 
 // =========================
 // ОТОБРАЖЕНИЕ ОТЧЁТА
@@ -181,44 +211,61 @@ function renderGeneratedReport(result) {
 function displayLessonData(data) {
   const html = data.children.map(child => {
     const tasksHtml = child.tasks.map(task => `
-      <div class="task-card" style="
-        background: white;
-        padding: 12px;
-        margin-top: 10px;
-        border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-      ">
-        <div style="font-weight: bold; margin-bottom: 5px;">${task.name}</div>
-
-        <div style="margin-bottom: 8px;">
-          <span style="background:#d1ecf1;color:#0c5460;padding:3px 6px;border-radius:4px;font-size:12px;">
-            ${task.direction}
-          </span>
-          <span style="background:#ffeeba;color:#856404;padding:3px 6px;border-radius:4px;font-size:12px;margin-left:5px;">
-            Уровень: ${task.level}
-          </span>
-          <span style="background:#c3e6cb;color:#155724;padding:3px 6px;border-radius:4px;font-size:12px;margin-left:5px;">
-            Награда: ${task.reward}
-          </span>
+      <div class="task-row">
+        <div class="task-title">${task.name}</div>
+        <div class="task-meta">
+          <span class="task-badge blue">${task.direction}</span>
+          <span class="task-badge yellow">Уровень ${task.level}</span>
+          <span class="task-badge green">+${task.reward}</span>
         </div>
-
-        <div style="color:#444; font-size:14px; white-space:pre-wrap;">${task.text}</div>
       </div>
     `).join('');
 
     return `
-      <div class="child-block" style="
-        background:#eef1f4;
-        padding:15px;
-        border-radius:10px;
-        margin-bottom:20px;
-      ">
-        <h3 style="margin-top:0;color:#333;">${child.name}</h3>
-        <div style="margin-bottom:10px;color:#555;">Сделано заданий: <strong>${child.done_tasks_count}</strong></div>
-        ${tasksHtml}
+      <div class="child-card">
+        <div class="child-header">
+          <div class="child-name">${child.name}</div>
+          <div class="child-count">Выполнено заданий: ${child.done_tasks_count}</div>
+        </div>
+
+        <div class="tasks-list">
+          ${tasksHtml}
+        </div>
       </div>
     `;
   }).join('');
 
-  report.innerHTML = html;
+  lessonPreviewContent.innerHTML = html;
 }
+
+
+function renderSingleGeneratedReport(blockId, result) {
+  const container = document.getElementById(blockId);
+
+  if (result.status !== "success") {
+    container.innerHTML = `
+      <div class="report-name">Ошибка</div>
+      <div class="report-error">${result.message || 'Не удалось получить отчёт'}</div>
+    `;
+    return;
+  }
+
+  const paragraphs = result.report
+    .split("\n")
+    .filter(p => p.trim())
+    .map(p => `<p>${p.trim()}</p>`)
+    .join('');
+
+  container.innerHTML = `
+    <div class="report-name">${result.child_name}</div>
+    <div class="report-text">${paragraphs}</div>
+  `;
+  
+  // Добавляем плавное появление
+  container.style.opacity = '0';
+  setTimeout(() => {
+    container.style.transition = 'opacity 0.4s ease';
+    container.style.opacity = '1';
+  }, 10);
+}
+

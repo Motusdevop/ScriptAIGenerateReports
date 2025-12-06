@@ -53,21 +53,19 @@ async def call_llm(prompt: str) -> str:
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(None, _generate_content)
 
+async def generate_single_report(child: dict[str, Any]) -> str:
+    """Генерирует отчёт для одного ребёнка."""
+    prompt = generate_prompt(child)
 
-async def collect_reports(children: list[dict[str, Any]]) -> str:
-    """Генерирует отчёты по каждому ребёнку и собирает их в нумерованный список."""
-    reports: list[str] = []
+    try:
+        llm_answer = await call_llm(prompt)
+    except Exception as exc:  # pragma: no cover
+        logger.exception(
+            "Не удалось получить отчёт для {}: {}",
+            child.get("name"),
+            exc,
+        )
+        return "Не удалось получить отчёт. Попробуйте позже."
 
-    for idx, child in enumerate(children, start=1):
-        prompt = generate_prompt(child)
-        try:
-            llm_answer = await call_llm(prompt)
-        except Exception as exc:  # pragma: no cover - сеть/LLM
-            logger.exception("Не удалось получить отчёт для {}: {}", child.get("name"), exc)
-            llm_answer = "Не удалось получить отчёт. Попробуйте позже."
-
-        sanitized_answer = " ".join(llm_answer.split()) or "Нет данных для отчёта."
-        child_name = child.get("name", f"Ребёнок #{idx}")
-        reports.append(f"{idx}. {child_name} — {sanitized_answer}")
-
-    return "\n".join(reports)
+    sanitized_answer = " ".join(llm_answer.split())
+    return sanitized_answer or "Нет данных для отчёта."

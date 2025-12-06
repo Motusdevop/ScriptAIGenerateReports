@@ -22,3 +22,7 @@ class ChildModel(BaseModel):
 
 class LessonReportRequest(BaseModel):
     children: List[ChildModel]
+
+class SingleLessonReportRequest(BaseModel):
+    child: ChildModel
+
