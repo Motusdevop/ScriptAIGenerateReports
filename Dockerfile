@@ -15,7 +15,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Копируем ВСЁ в корень
 COPY . /
 
-EXPOSE 8000
+EXPOSE 80
 
 # Запускаем приложение
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80"]
