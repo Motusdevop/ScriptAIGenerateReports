@@ -34,7 +34,6 @@
       </div>
       <div class="button-group">
         <button id="fetchBtn">Получить данные из урока</button>
-        <button id="generateBtn">Сгенерировать отчёт</button>
       </div>
     </section>
 
@@ -44,11 +43,39 @@
     <div id="lessonPreview" class="lesson-preview-section" style="display: none;">
       <h2 class="section-title">Данные урока</h2>
       <div class="lesson-preview-content" id="lessonPreviewContent"></div>
+      <div class="generate-section">
+        <button id="generateBtn" class="btn-generate">Сгенерировать отчёты</button>
+      </div>
     </div>
 
     <div id="reportsSection" class="reports-section" style="display: none;">
       <h2 class="section-title">Сгенерированные отчеты</h2>
       <div class="reports-content" id="report"></div>
+    </div>
+  </div>
+
+  <!-- Модальное окно для перегенерации -->
+  <div id="regenerateModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Перегенерировать отчёт</h3>
+        <button class="modal-close" id="modalClose">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="regenerateComment">Комментарий преподавателя</label>
+          <textarea 
+            id="regenerateComment" 
+            class="comment-input" 
+            placeholder="Введите комментарий для этого ребёнка..."
+            rows="4"
+          ></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="modalCancel">Отмена</button>
+        <button class="btn-primary" id="modalRegenerate">Перегенерировать</button>
+      </div>
     </div>
   </div>
 

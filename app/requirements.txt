@@ -6,7 +6,6 @@ pydantic-settings
 loguru
 
 pycurl
-beautifulsoup4
 lxml
 
 google-generativeai

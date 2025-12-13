@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from app.services.softium_scraper import LessonScraper
+from app.domains.lesson_data.scraper import LessonScraper
 
 router = APIRouter(prefix="/scraper", tags=["scraper"])
 
@@ -11,6 +11,8 @@ def scrape(username: str, password: str, lesson_id: int):
     try:
         data = scraper.get_lesson_data(lesson_id)
     except Exception as exc:
-        raise HTTPException(status_code=400, detail=f"Ошибка при получении данных: {exc}")
+        raise HTTPException(
+            status_code=400, detail=f"Ошибка при получении данных: {exc}"
+        )
 
-    return {"children": [c.to_dict() for c in data]}
+    return {"children": [c.model_dump() for c in data]}

@@ -1,0 +1,125 @@
+# services/softium_parser.py
+
+import re
+from typing import List
+from lxml import html
+from app.core.logger_config import logger
+from app.domains.lesson_data.schemas import Child, Task
+
+
+class Parser:
+    """Парсер HTML страниц Softium (lxml-based)."""
+
+    # -------------------------------------------------------------------------
+    # CHILDREN PARSER
+    # -------------------------------------------------------------------------
+    @staticmethod
+    def parse_children(lesson_html: str) -> List[Child]:
+        logger.debug("🔍 Parsing children list (lxml)...")
+
+        tree = html.fromstring(lesson_html)
+        children: List[Child] = []
+
+        tables = tree.xpath("//table[starts-with(@id, 'reptable')]")
+
+        for table in tables:
+            try:
+                name_td = table.xpath(".//td[text()='Имя']")
+                done_td = table.xpath(".//td[text()='Сделано заданий']")
+
+                if not name_td or not done_td:
+                    continue
+
+                child_link = name_td[0].getnext().xpath(".//a")
+                tasks_link = done_td[0].getnext().xpath(".//a[@onclick]")
+
+                if not child_link or not tasks_link:
+                    continue
+
+                child_link = child_link[0]
+                tasks_link = tasks_link[0]
+
+                child_match = re.search(r"child=(\d+)", child_link.get("href", ""))
+                task_match = re.search(
+                    r"ShowTasks\((\d+),\s*'(.+?)',\s*(\d+),\s*(\d+)\)",
+                    tasks_link.get("onclick", ""),
+                )
+
+                if not child_match or not task_match:
+                    continue
+
+                child = Child(
+                    name=child_link.text_content().strip(),
+                    child_id=int(child_match.group(1)),
+                    lesson_id=task_match.group(2),
+                    arepid=int(task_match.group(4)),
+                    done_tasks_count=int(tasks_link.text_content().strip()),
+                )
+
+                children.append(child)
+
+            except Exception as e:
+                logger.error(f"❌ Error while parsing child row: {e}")
+
+        logger.debug(f"👧 Parsed {len(children)} children")
+        return children
+
+    # -------------------------------------------------------------------------
+    # TASKS PARSER
+    # -------------------------------------------------------------------------
+    @staticmethod
+    def parse_tasks(tasks_html: str) -> List[Task]:
+        logger.debug("🔍 Parsing tasks (lxml)...")
+
+        tree = html.fromstring(tasks_html)
+        rows = tree.xpath("//table[@id='myTable']/tbody/tr")
+
+        tasks: List[Task] = []
+
+        for row in rows:
+            try:
+                cells = row.xpath("./td")
+                if len(cells) < 5:
+                    continue
+
+                task = Task(
+                    id=int(cells[0].text_content().strip()),
+                    name=cells[1].text_content().strip(),
+                    direction=cells[2].text_content().strip(),
+                    level=cells[3].text_content().strip(),
+                    reward=int(cells[4].text_content().strip()),
+                )
+
+                tasks.append(task)
+
+            except Exception as e:
+                logger.error(f"❌ Error while parsing task row: {e}")
+
+        logger.debug(f"📝 Parsed {len(tasks)} tasks")
+        return tasks
+
+    # -------------------------------------------------------------------------
+    # TASK TEXT PARSER
+    # -------------------------------------------------------------------------
+    @staticmethod
+    def parse_task_text(html_page: str) -> str:
+        logger.debug("🔍 Parsing task description (lxml)...")
+
+        tree = html.fromstring(html_page)
+        textarea = tree.xpath("//textarea[@id='description']")
+
+        if not textarea or not textarea[0].text:
+            logger.debug("⚠️ Task textarea not found or empty")
+            return ""
+
+        try:
+            inner_tree = html.fromstring(textarea[0].text)
+            paragraphs = inner_tree.xpath("//p")
+
+            text = "\n".join(p.text_content().strip() for p in paragraphs)
+            logger.debug("📄 Task description parsed successfully")
+            return text
+
+        except Exception as e:
+            logger.error(f"❌ Error parsing task description: {e}")
+            return ""

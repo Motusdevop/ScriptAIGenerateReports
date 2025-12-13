@@ -1,10 +1,10 @@
-from loguru import logger
 from typing import List
-from app.services.softium_client import HTTPClient
-from app.services.softium_parser import Parser
-from app.models.softium import Child, Task
+from app.domains.lesson_data.client import HTTPClient
+from app.domains.lesson_data.parser import Parser
+from app.domains.lesson_data.schemas import Child, Task
 
-from app.config import settings
+from app.core.config import settings
+from app.core.logger_config import logger
 
 
 class LessonScraper:
