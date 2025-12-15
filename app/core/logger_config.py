@@ -8,6 +8,7 @@ LOG_DIR.mkdir(exist_ok=True)
 
 def setup_logger():
     from loguru import logger
+
     logger.remove()
 
     # Логи в консоль

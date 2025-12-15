@@ -1,12 +1,14 @@
-from loguru import logger
 import pycurl
 from io import BytesIO
 from urllib.parse import urlencode
 from typing import Optional
 
+from app.domains.lesson_data.interfaces import IHttpClient
 
-class HTTPClient:
-    """Простой HTTP клиент для pycurl"""
+
+class HTTPClient(IHttpClient):
+    def __init__(self, logger):
+        self.logger = logger
 
     def request(
         self,
@@ -14,7 +16,7 @@ class HTTPClient:
         post_data: Optional[dict] = None,
         cookiejar: Optional[str] = None,
     ) -> str:
-        logger.debug(f"HTTP request → {url}")
+        self.logger.debug(f"HTTP request → {url}")
 
         buffer = BytesIO()
         curl = pycurl.Curl()
@@ -36,7 +38,7 @@ class HTTPClient:
         )
 
         if post_data:
-            logger.debug(f"POST data: {post_data}")
+            self.logger.debug(f"POST data: {post_data}")
             curl.setopt(curl.POST, 1)
             curl.setopt(curl.POSTFIELDS, urlencode(post_data))
 
@@ -44,6 +46,6 @@ class HTTPClient:
         curl.close()
 
         html = buffer.getvalue().decode("windows-1251", errors="replace")
-        logger.debug(f"HTTP response length: {len(html)} chars")
+        self.logger.debug(f"HTTP response length: {len(html)} chars")
 
         return html

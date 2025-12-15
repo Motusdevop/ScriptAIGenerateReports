@@ -177,13 +177,15 @@ fetchBtn.addEventListener('click', async () => {
   lessonPreviewContent.innerHTML = Array(3).fill(createSkeletonCard()).join('');
 
   try {
-    const params = new URLSearchParams({
-      username: savedCreds.username,
-      password: savedCreds.password,
-      lesson_id: lessonId
+    const response = await fetch(API_ENDPOINTS.GET_LESSON_DATA, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: savedCreds.username,
+        password: savedCreds.password,
+        lesson_id: Number(lessonId),
+      }),
     });
-
-    const response = await fetch(`${API_ENDPOINTS.GET_LESSON_DATA}?${params.toString()}`);
     
     if (!response.ok) {
       const errorText = await response.text().catch(() => response.statusText);
@@ -250,7 +252,7 @@ generateBtn.addEventListener('click', async () => {
       const response = await fetch(API_ENDPOINTS.GENERATE_REPORT, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ child }),
+        body: JSON.stringify(child),
       });
 
       if (!response.ok) {

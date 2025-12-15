@@ -27,14 +27,11 @@ class PromptBuilder:
     @staticmethod
     def format_task(task: dict) -> str:
         """Преобразует одно задание в строку для промпта."""
-        task_name = task.get('name', 'Без названия')
-        direction = task.get('direction', 'Не указано')
-        task_text = task.get('text') or 'Нет описания'
-        
-        return (
-            f"- Задание «{task_name}» "
-            f"(направление: {direction}, {task_text})"
-        )
+        task_name = task.get("name", "Без названия")
+        direction = task.get("direction", "Не указано")
+        task_text = task.get("text") or "Нет описания"
+
+        return f"- Задание «{task_name}» " f"(направление: {direction}, {task_text})"
 
     @staticmethod
     def build_tasks_block(tasks: list[dict]) -> str:

@@ -1,21 +1,17 @@
-# services/softium_parser.py
-
 import re
 from typing import List
 from lxml import html
-from app.core.logger_config import logger
-from app.domains.lesson_data.schemas import Child, Task
+from app.domains.lesson_data.interfaces import IParser, Child, Task
 
 
-class Parser:
+class LessonParser(IParser):
     """Парсер HTML страниц Softium (lxml-based)."""
 
-    # -------------------------------------------------------------------------
-    # CHILDREN PARSER
-    # -------------------------------------------------------------------------
-    @staticmethod
-    def parse_children(lesson_html: str) -> List[Child]:
-        logger.debug("🔍 Parsing children list (lxml)...")
+    def __init__(self, logger) -> None:
+        self.logger = logger
+
+    def parse_children(self, lesson_html: str) -> List[Child]:
+        self.logger.debug("🔍 Parsing children list (lxml)...")
 
         tree = html.fromstring(lesson_html)
         children: List[Child] = []
@@ -54,22 +50,19 @@ class Parser:
                     lesson_id=task_match.group(2),
                     arepid=int(task_match.group(4)),
                     done_tasks_count=int(tasks_link.text_content().strip()),
+                    tasks=[],
                 )
 
                 children.append(child)
 
             except Exception as e:
-                logger.error(f"❌ Error while parsing child row: {e}")
+                self.logger.error(f"❌ Error while parsing child row: {e}")
 
-        logger.debug(f"👧 Parsed {len(children)} children")
+        self.logger.debug(f"👧 Parsed {len(children)} children")
         return children
 
-    # -------------------------------------------------------------------------
-    # TASKS PARSER
-    # -------------------------------------------------------------------------
-    @staticmethod
-    def parse_tasks(tasks_html: str) -> List[Task]:
-        logger.debug("🔍 Parsing tasks (lxml)...")
+    def parse_tasks(self, tasks_html: str) -> List[Task]:
+        self.logger.debug("🔍 Parsing tasks (lxml)...")
 
         tree = html.fromstring(tasks_html)
         rows = tree.xpath("//table[@id='myTable']/tbody/tr")
@@ -88,28 +81,25 @@ class Parser:
                     direction=cells[2].text_content().strip(),
                     level=cells[3].text_content().strip(),
                     reward=int(cells[4].text_content().strip()),
+                    text=None,
                 )
 
                 tasks.append(task)
 
             except Exception as e:
-                logger.error(f"❌ Error while parsing task row: {e}")
+                self.logger.error(f"❌ Error while parsing task row: {e}")
 
-        logger.debug(f"📝 Parsed {len(tasks)} tasks")
+        self.logger.debug(f"📝 Parsed {len(tasks)} tasks")
         return tasks
 
-    # -------------------------------------------------------------------------
-    # TASK TEXT PARSER
-    # -------------------------------------------------------------------------
-    @staticmethod
-    def parse_task_text(html_page: str) -> str:
-        logger.debug("🔍 Parsing task description (lxml)...")
+    def parse_task_text(self, html_page: str) -> str:
+        self.logger.debug("🔍 Parsing task description (lxml)...")
 
         tree = html.fromstring(html_page)
         textarea = tree.xpath("//textarea[@id='description']")
 
         if not textarea or not textarea[0].text:
-            logger.debug("⚠️ Task textarea not found or empty")
+            self.logger.debug("⚠️ Task textarea not found or empty")
             return ""
 
         try:
@@ -117,9 +107,9 @@ class Parser:
             paragraphs = inner_tree.xpath("//p")
 
             text = "\n".join(p.text_content().strip() for p in paragraphs)
-            logger.debug("📄 Task description parsed successfully")
+            self.logger.debug("📄 Task description parsed successfully")
             return text
 
         except Exception as e:
-            logger.error(f"❌ Error parsing task description: {e}")
+            self.logger.error(f"❌ Error parsing task description: {e}")
             return ""

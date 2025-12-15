@@ -13,7 +13,7 @@ class GeminiClient:
     def configure_gemini(self) -> None:
         genai.configure(api_key=self.api_key)
 
-    async def call_llm(self, prompt: str) -> str:
+    async def generate(self, prompt: str) -> str:
         model = genai.GenerativeModel(model_name=self.model_name)
 
         def _generate_content() -> str:

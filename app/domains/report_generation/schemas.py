@@ -1,8 +1,13 @@
-from typing import List
-
 from pydantic import BaseModel
 from app.domains.lesson_data.schemas import Child
 
 
-class SingleLessonReportRequest(BaseModel):
-    child: Child
+class ReportRequest(Child):
+    pass
+
+
+class ReportResponse(BaseModel):
+    status: str
+    child_id: int
+    child_name: str
+    report: str
