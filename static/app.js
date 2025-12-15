@@ -481,7 +481,7 @@ async function regenerateReport() {
     const response = await fetch(API_ENDPOINTS.GENERATE_REPORT, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ child }),
+      body: JSON.stringify(child),
     });
 
     if (!response.ok) {
