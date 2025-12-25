@@ -1,10 +1,12 @@
 """
 Tests for LessonParser domain class
 """
+
 import pytest
 
 from app.domains.lesson_data.parser import LessonParser
-from app.domains.lesson_data.interfaces import Child, Task
+from app.domains.lesson_data.interfaces import Child
+
 
 @pytest.fixture
 def parser_fixture(mock_logger):
@@ -66,4 +68,3 @@ class TestLessonParser:
         # Act & Assert
         # Add real test implementation based on parser logic
         pass
-

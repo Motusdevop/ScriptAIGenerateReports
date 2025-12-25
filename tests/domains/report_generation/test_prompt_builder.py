@@ -1,7 +1,7 @@
 """
 Tests for prompt_builder domain class
 """
-import pytest
+
 
 from app.domains.report_generation.prompt_builder import PromptBuilder
 
@@ -33,8 +33,16 @@ class TestPromptBuilder:
         """Test building tasks block"""
         # Arrange
         tasks = [
-            {"name": "Задание 1", "direction": "Математика", "text": "Решить уравнения."},
-            {"name": "Задание 2", "direction": "Русский язык", "text": "Написать сочинение."},
+            {
+                "name": "Задание 1",
+                "direction": "Математика",
+                "text": "Решить уравнения.",
+            },
+            {
+                "name": "Задание 2",
+                "direction": "Русский язык",
+                "text": "Написать сочинение.",
+            },
         ]
 
         # Act

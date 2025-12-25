@@ -1,17 +1,21 @@
 """
 Pytest configuration and shared fixtures
 """
+
+from uuid import uuid4
+
 import pytest
 from unittest.mock import Mock, AsyncMock
 from fastapi.testclient import TestClient
 from typing import Generator
 
 from app.main import app
-from app.domains.lesson_data.interfaces import IHttpClient, IParser, ILessonScraper
+from app.domains.lesson_data.interfaces import IHttpClient, IParser
 from app.domains.report_generation.interfaces import ILLMClient
 from app.domains.lesson_data.scraper import LessonScraper
 from app.domains.report_generation.generator import ReportGenerator
 from app.core.logger_config import logger
+from app.domains.feedback.schemas import Feedback
 
 
 @pytest.fixture
@@ -74,6 +78,7 @@ def report_generator(mock_llm_client, mock_logger) -> ReportGenerator:
 def sample_child():
     """Sample child data for testing"""
     from app.domains.lesson_data.interfaces import Child, Task
+
     return Child(
         name="Тестовый Ребёнок",
         child_id=123,
@@ -92,3 +97,16 @@ def sample_child():
         ],
     )
 
+
+@pytest.fixture
+def sample_feedback(sample_child):
+    """Sample feedback object"""
+    return Feedback(
+        report_id=uuid4(),
+        rating=1,
+        comment="Отличный отчёт",
+        child=sample_child,
+        prompt="TEST PROMPT",
+        response="TEST RESPONSE",
+        model="gemini",
+    )

@@ -8,4 +8,5 @@ services:
       - .env
     volumes:
       - ./logs:/logs
+      - ./data:/data
     restart: always

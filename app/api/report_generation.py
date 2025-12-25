@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from app.api.dependencies import get_logger, get_report_generator
@@ -24,6 +26,7 @@ async def generate_report(
     try:
         report = await report_generator.generate_single_report(payload.model_dump())
         return ReportResponse(
+            report_id=uuid4(),
             status="success",
             child_id=payload.child_id,
             child_name=payload.name,

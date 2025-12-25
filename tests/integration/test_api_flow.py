@@ -1,6 +1,7 @@
 """
 Integration tests for API flows
 """
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -17,4 +18,3 @@ class TestAPIFlow:
         # This would test the full flow in an integration scenario
 
         ...
-

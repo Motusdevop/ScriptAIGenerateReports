@@ -8,6 +8,8 @@ from app.core.logger_config import logger
 from app.domains.lesson_data.client import HTTPClient
 from app.domains.lesson_data.parser import LessonParser
 from app.domains.report_generation.interfaces import ILLMClient
+from app.domains.feedback.repository import JsonlFeedbackRepository
+from app.domains.feedback.service import FeedbackService
 
 
 def get_logger():
@@ -44,3 +46,8 @@ def get_lesson_scraper(
         base_url=settings.BASE_URL,
         logger=logger,
     )
+
+
+def get_feedback_service() -> FeedbackService:
+    repo = JsonlFeedbackRepository()
+    return FeedbackService(repo)

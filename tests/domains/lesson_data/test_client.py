@@ -1,6 +1,7 @@
 """
 Tests for HTTPClient domain class
 """
+
 import pytest
 from unittest.mock import MagicMock, patch
 
@@ -23,7 +24,7 @@ class TestHTTPClient:
 
         test_response = "Hello world!!!".encode("windows-1251")
 
-        with patch('app.domains.lesson_data.client.pycurl.Curl') as curl:
+        with patch("app.domains.lesson_data.client.pycurl.Curl") as curl:
             mock_curl = MagicMock()
             curl.return_value = mock_curl
 
@@ -33,6 +34,6 @@ class TestHTTPClient:
 
             mock_curl.perform.side_effect = write_to_buffer
 
-            result = client.request('http://example.com', post_data={'key': 'value'})
+            result = client.request("http://example.com", post_data={"key": "value"})
 
             assert result.encode("windows-1251") == test_response

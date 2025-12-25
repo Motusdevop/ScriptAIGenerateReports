@@ -1,13 +1,8 @@
 """
 Tests for report_generation API endpoints
 """
-import pytest
-from unittest.mock import Mock, AsyncMock
-from fastapi.testclient import TestClient
 
-from app.main import app
-from app.api.dependencies import get_report_generator
-from app.domains.report_generation.schemas import ReportRequest
+
 
 
 # @pytest.fixture
@@ -79,4 +74,3 @@ from app.domains.report_generation.schemas import ReportRequest
 #         finally:
 #             # Cleanup
 #             app.dependency_overrides.clear()
-

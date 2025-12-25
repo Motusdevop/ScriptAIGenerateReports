@@ -837,3 +837,23 @@ button:disabled {
     height: 14px;
   }
 }
+
+/* ===== FEEDBACK BUTTONS ===== */
+.btn-like {
+  border-color: #22c55e;
+  color: #22c55e;
+}
+
+.btn-like:hover {
+  background: #dcfce7;
+}
+
+.btn-dislike {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.btn-dislike:hover {
+  background: #fee2e2;
+}
+
